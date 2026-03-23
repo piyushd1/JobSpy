@@ -62,10 +62,6 @@ class Naukri(Scraper):
         self.session.headers.update(naukri_headers)
         if "Nkparam" in self.session.headers:
             del self.session.headers["Nkparam"]
-        if "appid" in self.session.headers:
-            del self.session.headers["appid"]
-        if "systemid" in self.session.headers:
-            del self.session.headers["systemid"]
         try:
             self.session.get("https://www.naukri.com/")
         except Exception:
@@ -120,8 +116,15 @@ class Naukri(Scraper):
                 log.debug(f"Sending request to {self.base_url} with params: {params}")
                 response = self.session.get(self.base_url, params=params, timeout_seconds=10)
                 if response.status_code not in range(200, 400):
-                    err = f"Naukri API response status code {response.status_code} - {response.text}"
-                    log.error(err)
+                    body = response.text
+                    if response.status_code == 406 and "recaptcha required" in body.lower():
+                        log.warning(
+                            "Naukri blocked the request with a recaptcha challenge. "
+                            "Try again later or use proxies for Naukri-specific searches."
+                        )
+                    else:
+                        err = f"Naukri API response status code {response.status_code} - {body}"
+                        log.error(err)
                     return JobResponse(jobs=job_list)
                 data = response.json()
                 job_details = data.get("jobDetails", [])
