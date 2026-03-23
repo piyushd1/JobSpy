@@ -1,10 +1,15 @@
 from __future__ import annotations
 
+import sys
 import tempfile
 from pathlib import Path
 
 import pandas as pd
 import streamlit as st
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 from jobspy import build_candidate_profile, search_jobs_for_profile
 
@@ -337,3 +342,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
