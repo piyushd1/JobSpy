@@ -22,6 +22,12 @@ For automatic PDF resume parsing in the profile-ranking workflow, also install:
 pip install pypdf
 ```
 
+For the local frontend:
+
+```
+pip install streamlit
+```
+
 _Python version >= [3.10](https://www.python.org/downloads/release/python-3100/) required_
 
 ### Usage
@@ -80,6 +86,21 @@ print(ranked_jobs[["title", "company", "match_score", "match_reasons"]].head(10)
 
 This workflow searches `naukri`, `linkedin`, and `indeed` with India-first defaults, normalizes descriptions to plain text, deduplicates repeated listings, and appends match columns:
 `match_score`, `match_band`, `matched_roles`, `matched_keywords`, `match_reasons`, and `search_query`.
+
+### Frontend
+
+Run the local frontend with:
+
+```bash
+streamlit run frontend/streamlit_app.py
+```
+
+The UI lets you:
+
+- upload a resume PDF or paste resume text
+- tune PM / Program / P&L role preferences, locations, keywords, and portal scope
+- run the India ranking workflow visually
+- inspect match reasons and download the ranked shortlist as CSV
 
 ### Output
 
