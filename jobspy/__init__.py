@@ -14,6 +14,12 @@ from jobspy.linkedin import LinkedIn
 from jobspy.naukri import Naukri
 from jobspy.model import JobType, Location, JobResponse, Country
 from jobspy.model import SalarySource, ScraperInput, Site
+from jobspy.profile import (
+    CandidateProfile,
+    build_candidate_profile,
+    score_jobs_for_profile,
+    search_jobs_for_profile,
+)
 from jobspy.util import (
     set_logger_level,
     extract_salary,
@@ -221,7 +227,11 @@ def scrape_jobs(
         return pd.DataFrame()
 
 
-# Add BDJobs to __all__
 __all__ = [
+    "CandidateProfile",
+    "build_candidate_profile",
     "BDJobs",
+    "score_jobs_for_profile",
+    "scrape_jobs",
+    "search_jobs_for_profile",
 ]

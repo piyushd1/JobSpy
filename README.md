@@ -16,6 +16,12 @@
 pip install -U python-jobspy
 ```
 
+For automatic PDF resume parsing in the profile-ranking workflow, also install:
+
+```
+pip install pypdf
+```
+
 _Python version >= [3.10](https://www.python.org/downloads/release/python-3100/) required_
 
 ### Usage
@@ -40,6 +46,40 @@ print(f"Found {len(jobs)} jobs")
 print(jobs.head())
 jobs.to_csv("jobs.csv", quoting=csv.QUOTE_NONNUMERIC, escapechar="\\", index=False) # to_excel
 ```
+
+### Resume-Aware India Ranking
+
+```python
+from jobspy import build_candidate_profile, search_jobs_for_profile
+
+profile = build_candidate_profile(
+    resume_path="Piyush_Deveshwar_GPM_Mar-26.pdf",
+    preferred_locations=["Bengaluru", "Gurugram", "Mumbai"],
+    must_have_keywords=["p&l", "growth", "monetization"],
+    target_roles=[
+        "product manager",
+        "senior product manager",
+        "group product manager",
+        "staff product manager",
+        "program manager",
+        "project manager",
+        "business head",
+        "general manager",
+    ],
+)
+
+ranked_jobs = search_jobs_for_profile(
+    profile,
+    results_wanted_per_site=40,
+    hours_old=168,
+)
+
+ranked_jobs.to_csv("india_ranked_jobs.csv", index=False)
+print(ranked_jobs[["title", "company", "match_score", "match_reasons"]].head(10))
+```
+
+This workflow searches `naukri`, `linkedin`, and `indeed` with India-first defaults, normalizes descriptions to plain text, deduplicates repeated listings, and appends match columns:
+`match_score`, `match_band`, `matched_roles`, `matched_keywords`, `match_reasons`, and `search_query`.
 
 ### Output
 
