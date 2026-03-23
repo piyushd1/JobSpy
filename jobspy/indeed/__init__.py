@@ -19,6 +19,7 @@ from jobspy.model import (
 from jobspy.util import (
     extract_emails_from_text,
     markdown_converter,
+    plain_converter,
     create_session,
     create_logger,
 )
@@ -205,6 +206,8 @@ class Indeed(Scraper):
         description = job["description"]["html"]
         if self.scraper_input.description_format == DescriptionFormat.MARKDOWN:
             description = markdown_converter(description)
+        elif self.scraper_input.description_format == DescriptionFormat.PLAIN:
+            description = plain_converter(description)
 
         job_type = get_job_type(job["attributes"])
         timestamp_seconds = job["datePublished"] / 1000

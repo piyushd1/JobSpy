@@ -31,6 +31,7 @@ from jobspy.util import (
     extract_emails_from_text,
     currency_parser,
     markdown_converter,
+    plain_converter,
     create_session,
     create_logger,
 )
@@ -53,12 +54,22 @@ class Naukri(Scraper):
         self.session = create_session(
             proxies=self.proxies,
             ca_cert=ca_cert,
-            is_tls=False,
+            is_tls=True,
             has_retry=True,
             delay=5,
-            clear_cookies=True,
+            clear_cookies=False,
         )
         self.session.headers.update(naukri_headers)
+        if "Nkparam" in self.session.headers:
+            del self.session.headers["Nkparam"]
+        if "appid" in self.session.headers:
+            del self.session.headers["appid"]
+        if "systemid" in self.session.headers:
+            del self.session.headers["systemid"]
+        try:
+            self.session.get("https://www.naukri.com/")
+        except Exception:
+            pass
         self.scraper_input = None
         self.country = "India"  #naukri is india-focused by default
         log.info("Naukri scraper initialized")
@@ -107,7 +118,7 @@ class Naukri(Scraper):
             params = {k: v for k, v in params.items() if v is not None}
             try:
                 log.debug(f"Sending request to {self.base_url} with params: {params}")
-                response = self.session.get(self.base_url, params=params, timeout=10)
+                response = self.session.get(self.base_url, params=params, timeout_seconds=10)
                 if response.status_code not in range(200, 400):
                     err = f"Naukri API response status code {response.status_code} - {response.text}"
                     log.error(err)
@@ -172,12 +183,19 @@ class Naukri(Scraper):
         description = raw_description
         if description and self.scraper_input.description_format == DescriptionFormat.MARKDOWN:
             description = markdown_converter(description)
+        elif description and self.scraper_input.description_format == DescriptionFormat.PLAIN:
+            description = plain_converter(description)
 
         is_remote = is_job_remote(title, description or "", location)
         company_logo = job.get("logoPathV3") or job.get("logoPath")
 
         # Naukri-specific fields
-        skills = job.get("tagsAndSkills", "").split(",") if job.get("tagsAndSkills") else None
+        raw_skills = job.get("tagsAndSkills", "")
+        skills = (
+            sorted(set(s for s in (t.strip() for t in raw_skills.split(",")) if s))
+            if raw_skills
+            else None
+        )
         experience_range = job.get("experienceText")
         ambition_box = job.get("ambitionBoxData", {})
         company_rating = float(ambition_box.get("AggregateRating")) if ambition_box.get("AggregateRating") else None

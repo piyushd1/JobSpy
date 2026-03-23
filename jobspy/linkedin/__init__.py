@@ -226,6 +226,16 @@ class LinkedIn(Scraper):
             description = job_details.get("description")
         is_remote = is_job_remote(title, description, location)
 
+        # Preserve seniority/job-function even when full description is not fetched;
+        # parse_job_level / job_function come from the detail page, but we keep
+        # whatever the card itself can supply so downstream consumers always see
+        # these fields rather than None.
+        raw_level = job_details.get("job_level")
+        job_level = raw_level.strip().lower() if raw_level else None
+        job_function = job_details.get("job_function")
+        if job_function:
+            job_function = job_function.strip()
+
         return JobPost(
             id=f"li-{job_id}",
             title=title,
@@ -237,13 +247,13 @@ class LinkedIn(Scraper):
             job_url=f"{self.base_url}/jobs/view/{job_id}",
             compensation=compensation,
             job_type=job_details.get("job_type"),
-            job_level=job_details.get("job_level", "").lower(),
+            job_level=job_level,
             company_industry=job_details.get("company_industry"),
             description=job_details.get("description"),
             job_url_direct=job_details.get("job_url_direct"),
             emails=extract_emails_from_text(description),
             company_logo=job_details.get("company_logo"),
-            job_function=job_details.get("job_function"),
+            job_function=job_function,
         )
 
     def _get_job_details(self, job_id: str) -> dict:

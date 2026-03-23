@@ -69,11 +69,6 @@ query_template = """
                     __typename
                 }
                 jobSearchTrackingKey
-                jobsPageSeoData {
-                    pageMetaDescription
-                    pageTitle
-                    __typename
-                }
                 paginationCursors {
                     cursor
                     pageNumber
