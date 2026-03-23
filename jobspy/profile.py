@@ -266,7 +266,11 @@ def search_jobs_for_profile(
     queries = _generate_profile_queries(profile)
     search_frames: list[pd.DataFrame] = []
     base_scrape_kwargs = {
-        **INDIA_PM_PRESET_BASE,
+        **{
+            key: value
+            for key, value in INDIA_PM_PRESET_BASE.items()
+            if key not in {"results_wanted", "hours_old"}
+        },
         "site_name": effective_sites,
         "country_indeed": "india",
         "description_format": "plain",
@@ -691,3 +695,4 @@ def _unique_preserve_order(values: Iterable[str]) -> list[str]:
         seen.add(value)
         unique_values.append(value)
     return unique_values
+

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sys
 import tempfile
+import warnings
 from pathlib import Path
 
 import pandas as pd
@@ -57,18 +58,20 @@ def build_profile_from_ui(
             temp_resume_path = temp_file.name
 
     merged_roles = target_roles + parse_multiline_list(additional_roles)
-    profile = build_candidate_profile(
-        resume_path=temp_resume_path,
-        resume_text=resume_text,
-        target_roles=merged_roles or DEFAULT_ROLES,
-        preferred_locations=parse_multiline_list(preferred_locations),
-        must_have_keywords=parse_multiline_list(must_have_keywords),
-        nice_to_have_keywords=parse_multiline_list(nice_to_have_keywords),
-        exclude_keywords=parse_multiline_list(exclude_keywords),
-        remote_preference=remote_preference,
-        target_sites=target_sites,
-    )
-    return profile
+    with warnings.catch_warnings(record=True) as captured_warnings:
+        warnings.simplefilter("always")
+        profile = build_candidate_profile(
+            resume_path=temp_resume_path,
+            resume_text=resume_text,
+            target_roles=merged_roles or DEFAULT_ROLES,
+            preferred_locations=parse_multiline_list(preferred_locations),
+            must_have_keywords=parse_multiline_list(must_have_keywords),
+            nice_to_have_keywords=parse_multiline_list(nice_to_have_keywords),
+            exclude_keywords=parse_multiline_list(exclude_keywords),
+            remote_preference=remote_preference,
+            target_sites=target_sites,
+        )
+    return profile, [str(item.message) for item in captured_warnings]
 
 
 def render_summary_cards(results: pd.DataFrame):
@@ -291,7 +294,7 @@ def main():
         return
 
     try:
-        profile = build_profile_from_ui(
+        profile, profile_warnings = build_profile_from_ui(
             uploaded_resume=uploaded_resume,
             resume_text=resume_text,
             target_roles=target_roles,
@@ -303,6 +306,8 @@ def main():
             remote_preference=remote_preference,
             target_sites=target_sites,
         )
+        for warning_message in profile_warnings:
+            st.warning(warning_message)
         with st.spinner("Searching and ranking jobs..."):
             results = search_jobs_for_profile(
                 profile,
@@ -342,4 +347,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
